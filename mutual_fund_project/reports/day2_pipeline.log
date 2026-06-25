@@ -1,0 +1,10 @@
+2026-06-24 09:32:58,281 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\fund_master.csv
+2026-06-24 09:32:58,389 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\nav_history.csv
+2026-06-24 09:32:58,391 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\aum_by_fund_house.csv
+2026-06-24 09:32:58,392 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\monthly_sip_inflows.csv
+2026-06-24 09:32:58,395 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\category_inflows.csv
+2026-06-24 09:32:58,396 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\industry_folio_count.csv
+2026-06-24 09:32:58,398 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\scheme_performance.csv
+2026-06-24 09:32:58,551 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\investor_transactions.csv
+2026-06-24 09:32:58,554 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\portfolio_holdings.csv
+2026-06-24 09:32:58,567 | INFO | Saved cleaned dataset to D:\Mutual_fund\mutual_fund_project\data\processed\benchmark_indices.csv

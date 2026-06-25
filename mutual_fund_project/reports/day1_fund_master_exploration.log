@@ -1,0 +1,4 @@
+2026-06-23 12:20:15,211 | ERROR | fund_master_exploration | fund_master.csv not found at D:\Mutual_fund\mutual_fund_project\data\raw\fund_master.csv
+2026-06-23 12:27:27,047 | ERROR | fund_master_exploration | fund_master.csv not found at D:\Mutual_fund\mutual_fund_project\data\raw\fund_master.csv
+2026-06-23 20:40:19,126 | ERROR | fund_master_exploration | fund_master.csv not found at D:\Mutual_fund\mutual_fund_project\data\raw\fund_master.csv
+2026-06-24 08:58:57,414 | ERROR | fund_master_exploration | fund_master.csv not found at D:\Mutual_fund\mutual_fund_project\data\raw\fund_master.csv. Fund house/category exploration and AMFI validation are blocked until the file is added.

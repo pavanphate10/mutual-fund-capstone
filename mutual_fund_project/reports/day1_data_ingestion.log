@@ -1,0 +1,62 @@
+2026-06-23 12:20:11,968 | INFO | data_ingestion | Starting CSV ingestion from D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-23 12:20:11,969 | WARNING | data_ingestion | No CSV files found in D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-23 12:21:37,989 | INFO | data_ingestion | Starting CSV ingestion from D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-23 12:21:38,075 | INFO | data_ingestion | Processed 118632_nippon_large_cap.csv with shape (3313, 7)
+2026-06-23 12:21:38,101 | INFO | data_ingestion | Processed 119092_axis_bluechip.csv with shape (3580, 7)
+2026-06-23 12:21:38,127 | INFO | data_ingestion | Processed 119551_sbi_bluechip.csv with shape (3251, 7)
+2026-06-23 12:21:38,151 | INFO | data_ingestion | Processed 120503_icici_bluechip.csv with shape (3322, 7)
+2026-06-23 12:21:38,171 | INFO | data_ingestion | Processed 120841_kotak_bluechip.csv with shape (3316, 7)
+2026-06-23 12:21:38,192 | INFO | data_ingestion | Processed 125497_hdfc_top_100_direct.csv with shape (3106, 7)
+2026-06-23 12:21:38,250 | INFO | data_ingestion | Processed nav_history.csv with shape (19888, 7)
+2026-06-23 12:21:38,250 | INFO | data_ingestion | Completed CSV ingestion for 7 file(s).
+2026-06-24 08:58:57,272 | INFO | data_ingestion | Starting CSV ingestion from D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-24 08:58:57,273 | WARNING | data_ingestion | Expected 10 datasets but found only 7 in D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-24 08:58:57,351 | INFO | data_ingestion | Anomaly scan for 118632_nippon_large_cap.csv: ['some date values could not be parsed']
+2026-06-24 08:58:57,351 | INFO | data_ingestion | Processed 118632_nippon_large_cap.csv with shape (3313, 7)
+2026-06-24 08:58:57,387 | INFO | data_ingestion | Anomaly scan for 119092_axis_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 08:58:57,388 | INFO | data_ingestion | Processed 119092_axis_bluechip.csv with shape (3580, 7)
+2026-06-24 08:58:57,435 | INFO | data_ingestion | Anomaly scan for 119551_sbi_bluechip.csv: ['some date values could not be parsed']
+2026-06-24 08:58:57,436 | INFO | data_ingestion | Processed 119551_sbi_bluechip.csv with shape (3251, 7)
+2026-06-24 08:58:57,478 | INFO | data_ingestion | Anomaly scan for 120503_icici_bluechip.csv: ['some date values could not be parsed', 'some NAV values are non-positive']
+2026-06-24 08:58:57,478 | INFO | data_ingestion | Processed 120503_icici_bluechip.csv with shape (3322, 7)
+2026-06-24 08:58:57,508 | INFO | data_ingestion | Anomaly scan for 120841_kotak_bluechip.csv: ['some date values could not be parsed']
+2026-06-24 08:58:57,508 | INFO | data_ingestion | Processed 120841_kotak_bluechip.csv with shape (3316, 7)
+2026-06-24 08:58:57,533 | INFO | data_ingestion | Anomaly scan for 125497_hdfc_top_100_direct.csv: ['no obvious anomalies detected']
+2026-06-24 08:58:57,533 | INFO | data_ingestion | Processed 125497_hdfc_top_100_direct.csv with shape (3106, 7)
+2026-06-24 08:58:57,608 | INFO | data_ingestion | Anomaly scan for nav_history.csv: ['some NAV values are non-positive']
+2026-06-24 08:58:57,608 | INFO | data_ingestion | Processed nav_history.csv with shape (19888, 7)
+2026-06-24 08:58:57,608 | INFO | data_ingestion | Completed CSV ingestion for 7 file(s).
+2026-06-24 08:59:11,255 | INFO | data_ingestion | Starting CSV ingestion from D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-24 08:59:11,256 | WARNING | data_ingestion | Expected 10 datasets but found only 7 in D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-24 08:59:11,293 | INFO | data_ingestion | Anomaly scan for 118632_nippon_large_cap.csv: ['no obvious anomalies detected']
+2026-06-24 08:59:11,293 | INFO | data_ingestion | Processed 118632_nippon_large_cap.csv with shape (3313, 7)
+2026-06-24 08:59:11,327 | INFO | data_ingestion | Anomaly scan for 119092_axis_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 08:59:11,327 | INFO | data_ingestion | Processed 119092_axis_bluechip.csv with shape (3580, 7)
+2026-06-24 08:59:11,356 | INFO | data_ingestion | Anomaly scan for 119551_sbi_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 08:59:11,356 | INFO | data_ingestion | Processed 119551_sbi_bluechip.csv with shape (3251, 7)
+2026-06-24 08:59:11,383 | INFO | data_ingestion | Anomaly scan for 120503_icici_bluechip.csv: ['some NAV values are non-positive']
+2026-06-24 08:59:11,383 | INFO | data_ingestion | Processed 120503_icici_bluechip.csv with shape (3322, 7)
+2026-06-24 08:59:11,413 | INFO | data_ingestion | Anomaly scan for 120841_kotak_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 08:59:11,413 | INFO | data_ingestion | Processed 120841_kotak_bluechip.csv with shape (3316, 7)
+2026-06-24 08:59:11,440 | INFO | data_ingestion | Anomaly scan for 125497_hdfc_top_100_direct.csv: ['no obvious anomalies detected']
+2026-06-24 08:59:11,440 | INFO | data_ingestion | Processed 125497_hdfc_top_100_direct.csv with shape (3106, 7)
+2026-06-24 08:59:11,524 | INFO | data_ingestion | Anomaly scan for nav_history.csv: ['some NAV values are non-positive']
+2026-06-24 08:59:11,525 | INFO | data_ingestion | Processed nav_history.csv with shape (19888, 7)
+2026-06-24 08:59:11,525 | INFO | data_ingestion | Completed CSV ingestion for 7 file(s).
+2026-06-24 09:06:05,255 | INFO | data_ingestion | Starting CSV ingestion from D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-24 09:06:05,256 | WARNING | data_ingestion | Expected 10 datasets but found only 7 in D:\Mutual_fund\mutual_fund_project\data\raw
+2026-06-24 09:06:05,301 | INFO | data_ingestion | Anomaly scan for 118632_nippon_large_cap.csv: ['no obvious anomalies detected']
+2026-06-24 09:06:05,301 | INFO | data_ingestion | Processed 118632_nippon_large_cap.csv with shape (3314, 8)
+2026-06-24 09:06:05,333 | INFO | data_ingestion | Anomaly scan for 119092_axis_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 09:06:05,333 | INFO | data_ingestion | Processed 119092_axis_bluechip.csv with shape (3581, 8)
+2026-06-24 09:06:05,359 | INFO | data_ingestion | Anomaly scan for 119551_sbi_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 09:06:05,359 | INFO | data_ingestion | Processed 119551_sbi_bluechip.csv with shape (3252, 8)
+2026-06-24 09:06:05,383 | INFO | data_ingestion | Anomaly scan for 120503_icici_bluechip.csv: ['some NAV values are non-positive']
+2026-06-24 09:06:05,383 | INFO | data_ingestion | Processed 120503_icici_bluechip.csv with shape (3323, 8)
+2026-06-24 09:06:05,413 | INFO | data_ingestion | Anomaly scan for 120841_kotak_bluechip.csv: ['no obvious anomalies detected']
+2026-06-24 09:06:05,413 | INFO | data_ingestion | Processed 120841_kotak_bluechip.csv with shape (3317, 8)
+2026-06-24 09:06:05,447 | INFO | data_ingestion | Anomaly scan for 125497_hdfc_top_100_direct.csv: ['no obvious anomalies detected']
+2026-06-24 09:06:05,447 | INFO | data_ingestion | Processed 125497_hdfc_top_100_direct.csv with shape (3107, 8)
+2026-06-24 09:06:05,556 | INFO | data_ingestion | Anomaly scan for nav_history.csv: ['some NAV values are non-positive']
+2026-06-24 09:06:05,556 | INFO | data_ingestion | Processed nav_history.csv with shape (19894, 8)
+2026-06-24 09:06:05,557 | INFO | data_ingestion | Completed CSV ingestion for 7 file(s).

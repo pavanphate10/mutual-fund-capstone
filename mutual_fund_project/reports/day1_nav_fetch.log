@@ -1,0 +1,71 @@
+2026-06-23 12:20:24,092 | INFO | live_nav_fetch | Fetching NAV data for HDFC Top 100 Direct (125497)
+2026-06-23 12:20:24,409 | ERROR | live_nav_fetch | Network error while fetching HDFC Top 100 Direct (125497): HTTPSConnectionPool(host='api.mfapi.in', port=443): Max retries exceeded with url: /mf/125497 (Caused by NewConnectionError("HTTPSConnection(host='api.mfapi.in', port=443): Failed to establish a new connection: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"))
+2026-06-23 12:20:24,409 | INFO | live_nav_fetch | Fetching NAV data for SBI Bluechip (119551)
+2026-06-23 12:20:24,411 | ERROR | live_nav_fetch | Network error while fetching SBI Bluechip (119551): HTTPSConnectionPool(host='api.mfapi.in', port=443): Max retries exceeded with url: /mf/119551 (Caused by NewConnectionError("HTTPSConnection(host='api.mfapi.in', port=443): Failed to establish a new connection: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"))
+2026-06-23 12:20:24,413 | INFO | live_nav_fetch | Fetching NAV data for ICICI Bluechip (120503)
+2026-06-23 12:20:24,436 | ERROR | live_nav_fetch | Network error while fetching ICICI Bluechip (120503): HTTPSConnectionPool(host='api.mfapi.in', port=443): Max retries exceeded with url: /mf/120503 (Caused by NewConnectionError("HTTPSConnection(host='api.mfapi.in', port=443): Failed to establish a new connection: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"))
+2026-06-23 12:20:24,437 | INFO | live_nav_fetch | Fetching NAV data for Nippon Large Cap (118632)
+2026-06-23 12:20:24,438 | ERROR | live_nav_fetch | Network error while fetching Nippon Large Cap (118632): HTTPSConnectionPool(host='api.mfapi.in', port=443): Max retries exceeded with url: /mf/118632 (Caused by NewConnectionError("HTTPSConnection(host='api.mfapi.in', port=443): Failed to establish a new connection: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"))
+2026-06-23 12:20:24,438 | INFO | live_nav_fetch | Fetching NAV data for Axis Bluechip (119092)
+2026-06-23 12:20:24,440 | ERROR | live_nav_fetch | Network error while fetching Axis Bluechip (119092): HTTPSConnectionPool(host='api.mfapi.in', port=443): Max retries exceeded with url: /mf/119092 (Caused by NewConnectionError("HTTPSConnection(host='api.mfapi.in', port=443): Failed to establish a new connection: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"))
+2026-06-23 12:20:24,440 | INFO | live_nav_fetch | Fetching NAV data for Kotak Bluechip (120841)
+2026-06-23 12:20:24,442 | ERROR | live_nav_fetch | Network error while fetching Kotak Bluechip (120841): HTTPSConnectionPool(host='api.mfapi.in', port=443): Max retries exceeded with url: /mf/120841 (Caused by NewConnectionError("HTTPSConnection(host='api.mfapi.in', port=443): Failed to establish a new connection: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"))
+2026-06-23 12:20:24,442 | WARNING | live_nav_fetch | No NAV histories were downloaded successfully.
+2026-06-23 12:20:56,551 | INFO | live_nav_fetch | Fetching NAV data for HDFC Top 100 Direct (125497)
+2026-06-23 12:21:01,723 | INFO | live_nav_fetch | Fetching NAV data for HDFC Top 100 Direct (125497)
+2026-06-23 12:21:12,643 | INFO | live_nav_fetch | Saved 3106 rows to 125497_hdfc_top_100_direct.csv
+2026-06-23 12:21:12,643 | INFO | live_nav_fetch | Fetching NAV data for SBI Bluechip (119551)
+2026-06-23 12:21:12,646 | INFO | live_nav_fetch | Saved 3106 rows to 125497_hdfc_top_100_direct.csv
+2026-06-23 12:21:12,647 | INFO | live_nav_fetch | Fetching NAV data for SBI Bluechip (119551)
+2026-06-23 12:21:14,014 | INFO | live_nav_fetch | Saved 3251 rows to 119551_sbi_bluechip.csv
+2026-06-23 12:21:14,014 | INFO | live_nav_fetch | Fetching NAV data for ICICI Bluechip (120503)
+2026-06-23 12:21:14,019 | INFO | live_nav_fetch | Saved 3251 rows to 119551_sbi_bluechip.csv
+2026-06-23 12:21:14,020 | INFO | live_nav_fetch | Fetching NAV data for ICICI Bluechip (120503)
+2026-06-23 12:21:15,122 | INFO | live_nav_fetch | Saved 3322 rows to 120503_icici_bluechip.csv
+2026-06-23 12:21:15,122 | INFO | live_nav_fetch | Fetching NAV data for Nippon Large Cap (118632)
+2026-06-23 12:21:15,122 | INFO | live_nav_fetch | Saved 3322 rows to 120503_icici_bluechip.csv
+2026-06-23 12:21:15,122 | INFO | live_nav_fetch | Fetching NAV data for Nippon Large Cap (118632)
+2026-06-23 12:21:16,272 | INFO | live_nav_fetch | Saved 3313 rows to 118632_nippon_large_cap.csv
+2026-06-23 12:21:16,272 | INFO | live_nav_fetch | Fetching NAV data for Axis Bluechip (119092)
+2026-06-23 12:21:17,058 | INFO | live_nav_fetch | Saved 3313 rows to 118632_nippon_large_cap.csv
+2026-06-23 12:21:17,058 | INFO | live_nav_fetch | Fetching NAV data for Axis Bluechip (119092)
+2026-06-23 12:21:17,149 | INFO | live_nav_fetch | Saved 3580 rows to 119092_axis_bluechip.csv
+2026-06-23 12:21:17,150 | INFO | live_nav_fetch | Fetching NAV data for Kotak Bluechip (120841)
+2026-06-23 12:21:18,167 | INFO | live_nav_fetch | Saved 3580 rows to 119092_axis_bluechip.csv
+2026-06-23 12:21:18,168 | INFO | live_nav_fetch | Fetching NAV data for Kotak Bluechip (120841)
+2026-06-23 12:21:18,221 | INFO | live_nav_fetch | Saved 3316 rows to 120841_kotak_bluechip.csv
+2026-06-23 12:21:18,310 | INFO | live_nav_fetch | Saved combined NAV history to nav_history.csv
+2026-06-23 12:21:33,341 | INFO | live_nav_fetch | Saved 3316 rows to 120841_kotak_bluechip.csv
+2026-06-23 12:21:33,425 | INFO | live_nav_fetch | Saved combined NAV history to nav_history.csv
+2026-06-23 20:40:49,255 | INFO | live_nav_fetch | Fetching NAV data for HDFC Top 100 Direct (125497)
+2026-06-23 20:40:52,163 | INFO | live_nav_fetch | Saved 3106 rows to 125497_hdfc_top_100_direct.csv
+2026-06-23 20:40:52,163 | INFO | live_nav_fetch | Fetching NAV data for SBI Bluechip (119551)
+2026-06-23 20:40:53,273 | INFO | live_nav_fetch | Saved 3251 rows to 119551_sbi_bluechip.csv
+2026-06-23 20:40:53,274 | INFO | live_nav_fetch | Fetching NAV data for ICICI Bluechip (120503)
+2026-06-23 20:40:54,300 | INFO | live_nav_fetch | Saved 3322 rows to 120503_icici_bluechip.csv
+2026-06-23 20:40:54,300 | INFO | live_nav_fetch | Fetching NAV data for Nippon Large Cap (118632)
+2026-06-23 20:40:55,312 | INFO | live_nav_fetch | Saved 3313 rows to 118632_nippon_large_cap.csv
+2026-06-23 20:40:55,313 | INFO | live_nav_fetch | Fetching NAV data for Axis Bluechip (119092)
+2026-06-23 20:40:56,347 | INFO | live_nav_fetch | Saved 3580 rows to 119092_axis_bluechip.csv
+2026-06-23 20:40:56,349 | INFO | live_nav_fetch | Fetching NAV data for Kotak Bluechip (120841)
+2026-06-23 20:41:16,203 | INFO | live_nav_fetch | Saved 3316 rows to 120841_kotak_bluechip.csv
+2026-06-23 20:41:16,331 | INFO | live_nav_fetch | Saved combined NAV history to nav_history.csv
+2026-06-24 09:05:08,615 | INFO | live_nav_fetch | Fetching NAV data for HDFC Top 100 Direct (125497)
+2026-06-24 09:05:10,599 | WARNING | live_nav_fetch | Requested label 'HDFC Top 100 Direct' differs from API scheme name 'SBI Small Cap Fund - Direct Plan - Growth' for scheme code 125497
+2026-06-24 09:05:10,651 | INFO | live_nav_fetch | Saved 3107 rows to 125497_hdfc_top_100_direct.csv
+2026-06-24 09:05:10,651 | INFO | live_nav_fetch | Fetching NAV data for SBI Bluechip (119551)
+2026-06-24 09:05:11,557 | WARNING | live_nav_fetch | Requested label 'SBI Bluechip' differs from API scheme name 'Aditya Birla Sun Life Banking & PSU Debt Fund  - DIRECT - IDCW' for scheme code 119551
+2026-06-24 09:05:11,594 | INFO | live_nav_fetch | Saved 3252 rows to 119551_sbi_bluechip.csv
+2026-06-24 09:05:11,594 | INFO | live_nav_fetch | Fetching NAV data for ICICI Bluechip (120503)
+2026-06-24 09:05:12,487 | WARNING | live_nav_fetch | Requested label 'ICICI Bluechip' differs from API scheme name 'Axis ELSS Tax Saver Fund - Direct Plan - Growth Option' for scheme code 120503
+2026-06-24 09:05:12,522 | INFO | live_nav_fetch | Saved 3323 rows to 120503_icici_bluechip.csv
+2026-06-24 09:05:12,523 | INFO | live_nav_fetch | Fetching NAV data for Nippon Large Cap (118632)
+2026-06-24 09:05:13,298 | WARNING | live_nav_fetch | Requested label 'Nippon Large Cap' differs from API scheme name 'Nippon India Large Cap Fund - Direct Plan Growth Plan - Growth Option' for scheme code 118632
+2026-06-24 09:05:13,328 | INFO | live_nav_fetch | Saved 3314 rows to 118632_nippon_large_cap.csv
+2026-06-24 09:05:13,328 | INFO | live_nav_fetch | Fetching NAV data for Axis Bluechip (119092)
+2026-06-24 09:05:14,442 | WARNING | live_nav_fetch | Requested label 'Axis Bluechip' differs from API scheme name 'HDFC Money Market Fund - Growth Option - Direct Plan' for scheme code 119092
+2026-06-24 09:05:14,482 | INFO | live_nav_fetch | Saved 3581 rows to 119092_axis_bluechip.csv
+2026-06-24 09:05:14,482 | INFO | live_nav_fetch | Fetching NAV data for Kotak Bluechip (120841)
+2026-06-24 09:05:25,997 | WARNING | live_nav_fetch | Requested label 'Kotak Bluechip' differs from API scheme name 'quant Mid Cap Fund - Growth Option - Direct Plan' for scheme code 120841
+2026-06-24 09:05:26,035 | INFO | live_nav_fetch | Saved 3317 rows to 120841_kotak_bluechip.csv
+2026-06-24 09:05:26,157 | INFO | live_nav_fetch | Saved combined NAV history to nav_history.csv
