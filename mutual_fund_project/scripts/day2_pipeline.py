@@ -10,13 +10,13 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 REPORTS_DIR = PROJECT_ROOT / "reports"
-DB_PATH = PROJECT_ROOT / "bluestock_mf.db"
-SCHEMA_PATH = PROJECT_ROOT / "schema.sql"
-QUERIES_PATH = PROJECT_ROOT / "queries.sql"
+DB_PATH = PROJECT_ROOT / "data" / "db" / "bluestock_mf.db"
+SCHEMA_PATH = PROJECT_ROOT / "sql" / "schema.sql"
+QUERIES_PATH = PROJECT_ROOT / "sql" / "queries.sql"
 DATA_DICTIONARY_PATH = PROJECT_ROOT / "data_dictionary.md"
 LOAD_REPORT_PATH = REPORTS_DIR / "day2_load_verification.md"
 LOG_FILE = REPORTS_DIR / "day2_pipeline.log"

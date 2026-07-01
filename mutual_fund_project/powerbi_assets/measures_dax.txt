@@ -1,0 +1,71 @@
+Total AUM Cr =
+SUM ( aum_by_fund_house[aum_crore] )
+
+Latest AUM Cr =
+VAR LatestDate = MAX ( aum_by_fund_house[date] )
+RETURN
+    CALCULATE (
+        SUM ( aum_by_fund_house[aum_crore] ),
+        aum_by_fund_house[date] = LatestDate
+    )
+
+Latest SIP Inflow Cr =
+VAR LatestMonth = MAX ( monthly_sip_inflows[month] )
+RETURN
+    CALCULATE (
+        SUM ( monthly_sip_inflows[sip_inflow_crore] ),
+        monthly_sip_inflows[month] = LatestMonth
+    )
+
+Latest Total Folios Cr =
+VAR LatestMonth = MAX ( industry_folio_count[month] )
+RETURN
+    CALCULATE (
+        SUM ( industry_folio_count[total_folios_crore] ),
+        industry_folio_count[month] = LatestMonth
+    )
+
+Total Schemes =
+DISTINCTCOUNT ( fund_master[amfi_code] )
+
+Avg Return 3Y % =
+AVERAGE ( scheme_performance[return_3yr_pct] )
+
+Avg Std Dev % =
+AVERAGE ( scheme_performance[std_dev_ann_pct] )
+
+Total AUM by Fund Cr =
+SUM ( scheme_performance[aum_crore] )
+
+Avg Fund Score =
+AVERAGE ( fund_scorecard[fund_score] )
+
+Total Transaction Amount =
+SUM ( investor_transactions[amount_inr] )
+
+Avg SIP Amount =
+CALCULATE (
+    AVERAGE ( investor_transactions[amount_inr] ),
+    investor_transactions[transaction_type] = "SIP"
+)
+
+Transaction Count =
+COUNTROWS ( investor_transactions )
+
+Monthly Transaction Volume =
+SUM ( investor_transactions[amount_inr] )
+
+Nifty 50 Close =
+CALCULATE (
+    MAX ( benchmark_indices[close_value] ),
+    benchmark_indices[index_name] = "NIFTY50"
+)
+
+Category Net Inflow Cr =
+SUM ( category_inflows[net_inflow_crore] )
+
+Fund NAV =
+AVERAGE ( nav_history[nav] )
+
+Benchmark Close =
+AVERAGE ( benchmark_indices[close_value] )

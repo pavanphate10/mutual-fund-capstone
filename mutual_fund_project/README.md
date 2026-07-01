@@ -1,14 +1,8 @@
 # Mutual Fund Analytics Capstone Project
 
-## Project Overview
+## Overview
 
-This project is a Python-based capstone for Mutual Fund Analytics, focused on **Day 1: Data Ingestion**. It provides a clean project structure and production-ready scripts to:
-
-- download live historical NAV data from `https://api.mfapi.in`
-- profile and validate raw CSV files
-- explore fund master metadata
-- validate AMFI/scheme codes across datasets
-- document Day 1 data quality findings
+This repository packages the Mutual Fund Analytics capstone into a cleaner submission layout with reusable scripts, notebooks, SQL assets, dashboard files, and generated deliverables.
 
 ## Folder Structure
 
@@ -16,100 +10,85 @@ This project is a Python-based capstone for Mutual Fund Analytics, focused on **
 mutual_fund_project/
 ├── data/
 │   ├── raw/
-│   └── processed/
-├── notebooks/
-├── sql/
+│   ├── processed/
+│   └── db/
 ├── dashboard/
+├── notebooks/
+│   ├── 04_performance_analytics.ipynb
+│   └── 05_advanced_analytics.ipynb
 ├── reports/
-│   └── day1_data_quality.md
-├── data_ingestion.py
-├── live_nav_fetch.py
-├── fund_master_exploration.py
-├── validate_amfi_codes.py
-├── requirements.txt
-└── README.md
+├── scripts/
+│   ├── advanced_analytics.py
+│   ├── data_ingestion.py
+│   ├── day2_pipeline.py
+│   ├── fund_master_exploration.py
+│   ├── live_nav_fetch.py
+│   ├── performance_analytics.py
+│   ├── recommender.py
+│   └── validate_amfi_codes.py
+├── sql/
+│   ├── queries.sql
+│   └── schema.sql
+├── powerbi_assets/
+├── .gitignore
+├── README.md
+├── alpha_beta.csv
+├── benchmark_comparison_chart.png
+├── fund_scorecard.csv
+├── rolling_sharpe_chart.png
+└── var_cvar_report.csv
 ```
 
-## Setup Instructions
+## Setup
 
-1. Create and activate a Python virtual environment.
+Run these commands from the `mutual_fund_project` directory:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-```
-
-2. Install dependencies.
-
-```powershell
 pip install -r requirements.txt
 ```
 
-3. Place any source datasets such as `fund_master.csv` inside `data/raw/`.
+## Run Order
 
-## How to Run
-
-Run the commands below from the `mutual_fund_project` directory.
-
-### 1. Fetch live NAV data
+### Day 1 and Day 2 Pipeline
 
 ```powershell
-python live_nav_fetch.py
+python .\scripts\live_nav_fetch.py
+python .\scripts\data_ingestion.py
+python .\scripts\fund_master_exploration.py
+python .\scripts\validate_amfi_codes.py
+python .\scripts\day2_pipeline.py
 ```
 
-What it does:
-
-- downloads historical NAV data for six large-cap mutual funds
-- saves one CSV per fund in `data/raw/`
-- creates a combined `data/raw/nav_history.csv` file for validation
-
-### 2. Ingest and profile raw CSV files
+### Performance Analytics Deliverables
 
 ```powershell
-python data_ingestion.py
+python .\scripts\performance_analytics.py
 ```
 
-What it does:
+Outputs:
 
-- loads all CSV files from `data/raw/`
-- prints file name, shape, data types, preview rows, missing values, and duplicate counts
-- logs ingestion issues and anomalies to `reports/day1_data_ingestion.log`
+- `notebooks/04_performance_analytics.ipynb`
+- `fund_scorecard.csv`
+- `alpha_beta.csv`
+- `benchmark_comparison_chart.png`
 
-### 3. Explore the fund master dataset
+### Advanced Analytics Deliverables
 
 ```powershell
-python fund_master_exploration.py
+python .\scripts\advanced_analytics.py
+python .\scripts\recommender.py Moderate
 ```
 
-What it does:
+Outputs:
 
-- loads `data/raw/fund_master.csv`
-- prints unique fund houses, categories, sub-categories, and risk grades
-- generates summary statistics and lightweight insights
-
-### 4. Validate AMFI codes
-
-```powershell
-python validate_amfi_codes.py
-```
-
-What it does:
-
-- compares AMFI/scheme codes from `fund_master.csv` and `nav_history.csv`
-- reports missing codes and prints a validation summary
-
-## Deliverables
-
-- project scaffold for the Mutual Fund Analytics capstone
-- dependency manifest in `requirements.txt`
-- live NAV ingestion script
-- raw CSV ingestion and anomaly detection script
-- fund master exploration script
-- AMFI/scheme code validation script
-- Day 1 data quality report template in `reports/day1_data_quality.md`
+- `notebooks/05_advanced_analytics.ipynb`
+- `var_cvar_report.csv`
+- `rolling_sharpe_chart.png`
 
 ## Notes
 
-- The project uses defensive error handling and logging across all scripts.
-- `fund_master.csv` is expected to be provided separately in `data/raw/`.
-- Generated logs are stored in the `reports/` folder for traceability.
+- All scripts use `pathlib.Path` and resolve paths from the project root.
+- The SQLite database is stored under `data/db/` and ignored by Git via `.gitignore`.
+- Generated logs remain under `reports/` for traceability.

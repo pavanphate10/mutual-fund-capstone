@@ -1,2 +1,5 @@
 2026-06-23 12:20:18,836 | ERROR | validate_amfi_codes | Required file not found: D:\Mutual_fund\mutual_fund_project\data\raw\fund_master.csv
 2026-06-24 08:58:57,278 | ERROR | validate_amfi_codes | Required file not found: D:\Mutual_fund\mutual_fund_project\data\raw\fund_master.csv
+2026-07-01 22:06:32,858 | WARNING | validate_amfi_codes | Missing AMFI/scheme codes detected: ['100016', '100025', '100033', '101206', '101207', '101208', '102885', '102886', '102887', '118633', '118634', '118635', '118636', '119093', '119094', '119095', '119120', '119552', '119598', '119599', '120504', '120505', '120506', '120507', '120842', '120843', '120844', '125498', '148567', '148568', '148569', '149322', '149323', '149324']
+2026-07-01 22:08:33,833 | INFO | validate_amfi_codes | All fund master scheme codes were validated successfully.
+2026-07-01 22:09:16,778 | INFO | validate_amfi_codes | All fund master scheme codes were validated successfully.

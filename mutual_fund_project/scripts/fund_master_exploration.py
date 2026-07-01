@@ -9,7 +9,7 @@ from typing import Iterable, Optional
 import pandas as pd
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DATA_DIR = PROJECT_ROOT / "data" / "raw"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 LOG_FILE = REPORTS_DIR / "day1_fund_master_exploration.log"
@@ -110,7 +110,18 @@ def print_scheme_code_structure(dataframe: pd.DataFrame) -> None:
 
 def generate_summary_statistics(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Generate summary statistics for numeric and categorical columns."""
-    return dataframe.describe(include="all", datetime_is_numeric=True).transpose()
+    summary_frame = dataframe.copy()
+    for column in summary_frame.columns:
+        if "date" in column.lower():
+            parsed = pd.to_datetime(summary_frame[column], errors="coerce")
+            if parsed.notna().any():
+                summary_frame[column] = parsed
+
+    try:
+        return summary_frame.describe(include="all", datetime_is_numeric=True).transpose()
+    except TypeError:
+        # Older pandas versions do not support datetime_is_numeric.
+        return summary_frame.describe(include="all").transpose()
 
 
 def print_insights(dataframe: pd.DataFrame) -> None:

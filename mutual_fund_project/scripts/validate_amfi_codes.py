@@ -9,13 +9,16 @@ from typing import Iterable, Optional, Set
 import pandas as pd
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DATA_DIR = PROJECT_ROOT / "data" / "raw"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 LOG_FILE = REPORTS_DIR / "day1_amfi_validation.log"
 SUMMARY_FILE = REPORTS_DIR / "day1_data_quality.md"
 FUND_MASTER_FILE = RAW_DATA_DIR / "fund_master.csv"
-NAV_HISTORY_FILE = RAW_DATA_DIR / "nav_history.csv"
+NAV_HISTORY_CANDIDATES = [
+    RAW_DATA_DIR / "02_nav_history.csv",
+    RAW_DATA_DIR / "nav_history.csv",
+]
 
 
 def configure_logging() -> logging.Logger:
@@ -68,6 +71,15 @@ def load_dataset(file_path: Path) -> pd.DataFrame:
     return pd.read_csv(file_path)
 
 
+def resolve_nav_history_file() -> Path:
+    """Pick the best available NAV history source for AMFI validation."""
+    for candidate in NAV_HISTORY_CANDIDATES:
+        if candidate.exists():
+            return candidate
+    searched = ", ".join(str(path) for path in NAV_HISTORY_CANDIDATES)
+    raise FileNotFoundError(f"Required NAV history file not found. Checked: {searched}")
+
+
 def extract_code_set(dataframe: pd.DataFrame, logical_name: str) -> Set[str]:
     """Extract a normalized set of scheme codes from the dataset."""
     code_column = find_column(
@@ -98,10 +110,11 @@ def main() -> None:
     """Validate that fund master AMFI codes exist in NAV history."""
     try:
         fund_master = load_dataset(FUND_MASTER_FILE)
-        nav_history = load_dataset(NAV_HISTORY_FILE)
+        nav_history_file = resolve_nav_history_file()
+        nav_history = load_dataset(nav_history_file)
 
         fund_master_codes = extract_code_set(fund_master, "fund_master.csv")
-        nav_history_codes = extract_code_set(nav_history, "nav_history.csv")
+        nav_history_codes = extract_code_set(nav_history, nav_history_file.name)
 
         missing_codes = sorted(fund_master_codes - nav_history_codes)
         matched_codes = sorted(fund_master_codes & nav_history_codes)
@@ -118,6 +131,7 @@ def main() -> None:
             "",
             "## AMFI Validation Summary",
             "",
+            f"- NAV history file used: `{nav_history_file.name}`",
             f"- Fund master scheme codes: {len(fund_master_codes)}",
             f"- NAV history scheme codes: {len(nav_history_codes)}",
             f"- Matched scheme codes: {len(matched_codes)}",
@@ -138,14 +152,14 @@ def main() -> None:
                 ]
             )
         else:
-            print("\nAll fund master scheme codes are present in nav_history.csv")
+            print(f"\nAll fund master scheme codes are present in {nav_history_file.name}")
             LOGGER.info("All fund master scheme codes were validated successfully.")
             summary_lines.extend(
                 [
                     "",
                     "## Missing Codes",
                     "",
-                    "- None. Every fund master scheme code exists in nav_history.csv.",
+                    f"- None. Every fund master scheme code exists in {nav_history_file.name}.",
                 ]
             )
 

@@ -1,0 +1,78 @@
+{
+  "name": "Bluestock Mutual Fund Theme",
+  "dataColors": [
+    "#0F3D5E",
+    "#1D6FA3",
+    "#3BA3EC",
+    "#5EC2F2",
+    "#F28C28",
+    "#F4B942",
+    "#2E8B57",
+    "#D95D39",
+    "#7B8D93",
+    "#1C1C1C"
+  ],
+  "background": "#F6F9FC",
+  "foreground": "#1C2A35",
+  "tableAccent": "#1D6FA3",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "show": true,
+            "fontColor": { "solid": { "color": "#0F3D5E" } },
+            "fontSize": 13,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#FFFFFF" } },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "labels": [
+          {
+            "color": { "solid": { "color": "#1C2A35" } },
+            "fontSize": 10,
+            "fontFamily": "Segoe UI"
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": { "solid": { "color": "#F6F9FC" } },
+            "transparency": 0
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "calloutValue": [
+          {
+            "color": { "solid": { "color": "#0F3D5E" } },
+            "fontSize": 24,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "categoryLabels": [
+          {
+            "color": { "solid": { "color": "#5B6B79" } },
+            "fontSize": 10
+          }
+        ]
+      }
+    }
+  }
+}
