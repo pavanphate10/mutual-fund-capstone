@@ -1,9 +1,9 @@
-"""Generate advanced analytics deliverables for the mutual fund project."""
+"""Generate advanced analytics outputs for the mutual fund project."""
 
 from __future__ import annotations
 
 from pathlib import Path
-import sys
+import textwrap
 
 import matplotlib
 
@@ -17,143 +17,147 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
-NOTEBOOK_PATH = PROJECT_ROOT / "notebooks" / "05_advanced_analytics.ipynb"
+NOTEBOOK_PATH = PROJECT_ROOT / "Advanced_Analytics.ipynb"
 VAR_CVAR_PATH = PROJECT_ROOT / "var_cvar_report.csv"
 ROLLING_SHARPE_CHART_PATH = PROJECT_ROOT / "rolling_sharpe_chart.png"
+RECOMMENDER_PATH = PROJECT_ROOT / "recommender.py"
 
 TRADING_DAYS = 252
 ROLLING_WINDOW = 90
 KEY_FUND_COUNT = 5
-SIP_AT_RISK_DAYS = 35
 MIN_SIP_TRANSACTIONS = 6
+SIP_RISK_GAP_DAYS = 35
+
+RISK_APPETITE_MAP = {
+    "Low": ["Low"],
+    "Moderate": ["Moderate", "Moderately High"],
+    "High": ["High", "Very High"],
+}
 
 
 def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Load all processed datasets with light date parsing."""
     nav = pd.read_csv(PROCESSED_DIR / "nav_history.csv", parse_dates=["date"])
     scheme_performance = pd.read_csv(PROCESSED_DIR / "scheme_performance.csv")
-    fund_master = pd.read_csv(PROCESSED_DIR / "fund_master.csv")
     transactions = pd.read_csv(
         PROCESSED_DIR / "investor_transactions.csv",
         parse_dates=["transaction_date"],
     )
-    holdings = pd.read_csv(PROCESSED_DIR / "portfolio_holdings.csv")
-    return nav, scheme_performance, fund_master, transactions, holdings
+    holdings = pd.read_csv(PROCESSED_DIR / "portfolio_holdings.csv", parse_dates=["portfolio_date"])
+    fund_master = pd.read_csv(PROCESSED_DIR / "fund_master.csv", parse_dates=["launch_date"])
+    return nav, scheme_performance, transactions, holdings, fund_master
 
 
 def compute_daily_returns(nav: pd.DataFrame) -> pd.DataFrame:
-    returns = nav.sort_values(["amfi_code", "date"]).copy()
-    returns["daily_return"] = returns.groupby("amfi_code")["nav"].pct_change()
-    return returns
+    """Compute daily NAV returns fund by fund."""
+    nav_returns = nav.sort_values(["amfi_code", "date"]).copy()
+    nav_returns["daily_return"] = nav_returns.groupby("amfi_code")["nav"].pct_change()
+    return nav_returns
 
 
-def compute_var_cvar(
-    nav_returns: pd.DataFrame,
-    scheme_performance: pd.DataFrame,
-) -> pd.DataFrame:
-    rows: list[dict[str, object]] = []
-    metadata = scheme_performance.set_index("amfi_code")
-
-    for amfi_code, group in nav_returns.groupby("amfi_code", sort=True):
-        returns = group["daily_return"].dropna()
-        if returns.empty:
-            var_95 = np.nan
-            cvar_95 = np.nan
-            observation_count = 0
-        else:
-            var_95 = float(returns.quantile(0.05))
-            cvar_95 = float(returns.loc[returns <= var_95].mean())
-            observation_count = int(returns.shape[0])
-
-        meta = metadata.loc[amfi_code]
-        rows.append(
-            {
-                "amfi_code": amfi_code,
-                "scheme_name": meta["scheme_name"],
-                "fund_house": meta["fund_house"],
-                "category": meta["category"],
-                "plan": meta["plan"],
-                "risk_grade": meta["risk_grade"],
-                "sharpe_ratio": meta["sharpe_ratio"],
-                "var_95": var_95,
-                "cvar_95": cvar_95,
-                "var_95_pct": var_95 * 100 if pd.notna(var_95) else np.nan,
-                "cvar_95_pct": cvar_95 * 100 if pd.notna(cvar_95) else np.nan,
-                "return_observations": observation_count,
-            }
+def compute_var_cvar(nav_returns: pd.DataFrame, scheme_performance: pd.DataFrame) -> pd.DataFrame:
+    """Historical 95% VaR and CVaR for every scheme."""
+    risk_summary = (
+        nav_returns.dropna(subset=["daily_return"])
+        .groupby("amfi_code")["daily_return"]
+        .agg(
+            VaR_95=lambda s: s.quantile(0.05),
+            CVaR_95=lambda s: s[s <= s.quantile(0.05)].mean(),
         )
+        .reset_index()
+    )
 
-    return pd.DataFrame(rows).sort_values("var_95").reset_index(drop=True)
+    var_cvar = (
+        scheme_performance[["amfi_code", "scheme_name"]]
+        .drop_duplicates()
+        .merge(risk_summary, on="amfi_code", how="left")
+        .sort_values(["VaR_95", "CVaR_95", "scheme_name"], ascending=[True, True, True])
+        .reset_index(drop=True)
+    )
+    return var_cvar
 
 
 def compute_rolling_sharpe(nav_returns: pd.DataFrame) -> pd.DataFrame:
-    series = nav_returns.sort_values(["amfi_code", "date"]).copy()
-
-    grouped = series.groupby("amfi_code")["daily_return"]
+    """Compute 90-day rolling Sharpe ratio by scheme."""
+    rolling = nav_returns.sort_values(["amfi_code", "date"]).copy()
+    grouped = rolling.groupby("amfi_code")["daily_return"]
     rolling_mean = grouped.transform(lambda s: s.rolling(ROLLING_WINDOW).mean())
     rolling_std = grouped.transform(lambda s: s.rolling(ROLLING_WINDOW).std())
-
-    series["rolling_sharpe_90d"] = (rolling_mean / rolling_std) * np.sqrt(TRADING_DAYS)
-    return series
+    rolling["rolling_sharpe"] = (rolling_mean / rolling_std) * np.sqrt(TRADING_DAYS)
+    return rolling
 
 
 def select_key_funds(
     rolling_sharpe: pd.DataFrame,
     scheme_performance: pd.DataFrame,
 ) -> pd.DataFrame:
-    top_codes = (
+    """Pick five key funds by AUM and plot-ready metadata."""
+    key_codes = (
         scheme_performance.sort_values(["aum_crore", "sharpe_ratio"], ascending=[False, False])
         .head(KEY_FUND_COUNT)["amfi_code"]
         .tolist()
     )
-    scheme_names = scheme_performance[["amfi_code", "scheme_name"]].drop_duplicates()
-    return rolling_sharpe.loc[rolling_sharpe["amfi_code"].isin(top_codes)].merge(
-        scheme_names,
+    metadata = scheme_performance[["amfi_code", "scheme_name"]].drop_duplicates()
+    key_funds = rolling_sharpe.loc[rolling_sharpe["amfi_code"].isin(key_codes)].merge(
+        metadata,
         on="amfi_code",
         how="left",
     )
+    return key_funds.sort_values(["scheme_name", "date"]).reset_index(drop=True)
 
 
-def render_rolling_sharpe_chart(key_funds: pd.DataFrame) -> None:
+def save_rolling_sharpe_chart(key_funds: pd.DataFrame) -> None:
+    """Render rolling Sharpe line chart for five key funds."""
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, ax = plt.subplots(figsize=(14, 8))
 
-    for amfi_code, group in key_funds.groupby("amfi_code", sort=False):
-        series = group.sort_values("date")
+    for scheme_name, fund_data in key_funds.groupby("scheme_name", sort=False):
         ax.plot(
-            series["date"],
-            series["rolling_sharpe_90d"],
+            fund_data["date"],
+            fund_data["rolling_sharpe"],
             linewidth=2,
-            label=series["scheme_name"].iloc[0],
+            label=scheme_name,
         )
 
-    ax.set_title("Rolling 90-Day Sharpe Ratio for 5 Key Funds")
+    ax.axhline(0, color="#666666", linestyle="--", linewidth=1)
+    ax.set_title("Rolling 90-Day Sharpe Ratio")
     ax.set_xlabel("Date")
-    ax.set_ylabel("Rolling Sharpe Ratio")
-    ax.axhline(0, color="#444444", linewidth=1, linestyle="--")
-    ax.legend(loc="upper left", fontsize=9)
+    ax.set_ylabel("Sharpe Ratio")
+    ax.legend(loc="best", fontsize=9)
     fig.tight_layout()
     fig.savefig(ROLLING_SHARPE_CHART_PATH, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
-def compute_investor_cohorts(
+def compute_cohort_analysis(
     transactions: pd.DataFrame,
     scheme_performance: pd.DataFrame,
 ) -> pd.DataFrame:
-    investor_first_year = (
-        transactions.groupby("investor_id")["transaction_date"].min().dt.year.rename("cohort_year")
+    """Build investor cohorts from each investor's first transaction year."""
+    first_year = (
+        transactions.groupby("investor_id")["transaction_date"]
+        .min()
+        .dt.year.rename("cohort_year")
     )
-    cohort_data = transactions.merge(investor_first_year, on="investor_id", how="left")
+    cohort_data = transactions.merge(first_year, on="investor_id", how="left")
+    invested_mask = cohort_data["transaction_type"].isin(["SIP", "Lumpsum"])
 
-    sip_only = cohort_data.loc[cohort_data["transaction_type"] == "SIP"].copy()
-    avg_sip = sip_only.groupby("cohort_year")["amount_inr"].mean().rename("avg_sip_amount_inr")
+    avg_sip_amount = (
+        cohort_data.loc[cohort_data["transaction_type"] == "SIP"]
+        .groupby("cohort_year")["amount_inr"]
+        .mean()
+        .rename("avg_sip_amount")
+    )
+    total_invested = (
+        cohort_data.loc[invested_mask]
+        .groupby("cohort_year")["amount_inr"]
+        .sum()
+        .rename("total_invested")
+    )
+    investor_count = first_year.value_counts().rename_axis("cohort_year").rename("investor_count")
 
-    invested = cohort_data.loc[
-        cohort_data["transaction_type"].isin(["SIP", "Lumpsum"])
-    ].groupby("cohort_year")["amount_inr"].sum().rename("total_invested_inr")
-
-    fund_pref = (
-        cohort_data.loc[cohort_data["transaction_type"].isin(["SIP", "Lumpsum"])]
+    top_fund = (
+        cohort_data.loc[invested_mask]
         .groupby(["cohort_year", "amfi_code"])["amount_inr"]
         .sum()
         .reset_index()
@@ -164,342 +168,457 @@ def compute_investor_cohorts(
             on="amfi_code",
             how="left",
         )
-        .rename(
-            columns={
-                "amfi_code": "top_fund_amfi_code",
-                "scheme_name": "top_fund_preference",
-                "amount_inr": "top_fund_invested_inr",
-            }
-        )
-        .set_index("cohort_year")
+        .set_index("cohort_year")["scheme_name"]
+        .rename("top_fund")
     )
 
-    investor_count = investor_first_year.value_counts().rename_axis("cohort_year").rename("investor_count")
-
-    cohort_summary = pd.concat([investor_count, avg_sip, invested, fund_pref], axis=1).reset_index()
-    return cohort_summary.sort_values("cohort_year").reset_index(drop=True)
-
-
-def compute_sip_continuity(transactions: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, float]]:
-    sip = transactions.loc[transactions["transaction_type"] == "SIP"].copy()
-    sip = sip.sort_values(["investor_id", "transaction_date"])
-    sip["gap_days"] = sip.groupby("investor_id")["transaction_date"].diff().dt.days
-
-    eligible = sip.groupby("investor_id").filter(lambda frame: len(frame) >= MIN_SIP_TRANSACTIONS)
-    investor_gaps = (
-        eligible.groupby("investor_id")
-        .agg(
-            sip_transactions=("transaction_date", "size"),
-            avg_gap_days=("gap_days", "mean"),
-            median_gap_days=("gap_days", "median"),
-            latest_sip_date=("transaction_date", "max"),
-        )
+    cohort_summary = (
+        pd.concat([avg_sip_amount, total_invested, investor_count, top_fund], axis=1)
         .reset_index()
-    )
-    investor_gaps["continuity_status"] = np.where(
-        investor_gaps["avg_gap_days"] > SIP_AT_RISK_DAYS,
-        "at-risk",
-        "healthy",
-    )
-
-    summary = {
-        "eligible_investors": int(investor_gaps.shape[0]),
-        "at_risk_investors": int((investor_gaps["continuity_status"] == "at-risk").sum()),
-        "continuity_rate": float((investor_gaps["continuity_status"] == "healthy").mean()),
-        "avg_gap_days_overall": float(investor_gaps["avg_gap_days"].mean()),
-    }
-    return investor_gaps.sort_values(["avg_gap_days", "sip_transactions"], ascending=[False, False]), summary
-
-
-def compute_hhi(
-    holdings: pd.DataFrame,
-    scheme_performance: pd.DataFrame,
-    fund_master: pd.DataFrame,
-) -> pd.DataFrame:
-    equity_codes = (
-        fund_master.loc[
-            fund_master["category"].str.contains("equity", case=False, na=False),
-            ["amfi_code"],
-        ]
-        .drop_duplicates()
-        .merge(
-            scheme_performance[
-                ["amfi_code", "scheme_name", "fund_house", "category", "plan", "risk_grade"]
-            ].drop_duplicates(),
-            on="amfi_code",
-            how="left",
-        )
-    )
-
-    equity_holdings = holdings.merge(equity_codes, on="amfi_code", how="inner")
-    hhi = (
-        equity_holdings.assign(weight_decimal=equity_holdings["weight_pct"] / 100)
-        .groupby(["amfi_code", "scheme_name", "fund_house", "category", "plan", "risk_grade"])
-        .agg(
-            hhi=("weight_decimal", lambda s: float(np.square(s).sum())),
-            holdings_count=("stock_symbol", "nunique"),
-            top_sector=("sector", lambda s: s.value_counts().index[0] if not s.empty else np.nan),
-            top_holding_weight_pct=("weight_pct", "max"),
-        )
-        .reset_index()
-        .sort_values("hhi", ascending=False)
+        .sort_values("cohort_year")
         .reset_index(drop=True)
     )
-    hhi["concentration_label"] = pd.cut(
-        hhi["hhi"],
-        bins=[-np.inf, 0.10, 0.18, np.inf],
-        labels=["Diversified", "Balanced", "Concentrated"],
+    return cohort_summary
+
+
+def compute_sip_continuity(transactions: pd.DataFrame) -> pd.DataFrame:
+    """Assess SIP continuity based on average inter-transaction gap."""
+    sip_transactions = transactions.loc[transactions["transaction_type"] == "SIP"].copy()
+    sip_transactions = sip_transactions.sort_values(["investor_id", "transaction_date"])
+    sip_transactions["gap_days"] = (
+        sip_transactions.groupby("investor_id")["transaction_date"].diff().dt.days
+    )
+
+    eligible = sip_transactions.groupby("investor_id").filter(
+        lambda frame: len(frame) >= MIN_SIP_TRANSACTIONS
+    )
+    sip_status = (
+        eligible.groupby("investor_id")["gap_days"]
+        .mean()
+        .reset_index(name="avg_gap_days")
+        .sort_values(["avg_gap_days", "investor_id"], ascending=[False, True])
+        .reset_index(drop=True)
+    )
+    sip_status["status"] = np.where(
+        sip_status["avg_gap_days"] > SIP_RISK_GAP_DAYS,
+        "at_risk",
+        "healthy",
+    )
+    return sip_status
+
+
+def compute_hhi(holdings: pd.DataFrame, fund_master: pd.DataFrame) -> pd.DataFrame:
+    """Compute sector concentration using the portfolio HHI."""
+    equity_funds = fund_master.loc[
+        fund_master["category"].str.contains("equity", case=False, na=False),
+        ["amfi_code", "scheme_name"],
+    ].drop_duplicates()
+
+    hhi = (
+        holdings.merge(equity_funds, on="amfi_code", how="inner")
+        .assign(weight_decimal=lambda df: df["weight_pct"] / 100)
+        .groupby("scheme_name")["weight_decimal"]
+        .apply(lambda s: np.square(s).sum())
+        .reset_index(name="HHI")
+        .sort_values(["HHI", "scheme_name"], ascending=[False, True])
+        .reset_index(drop=True)
     )
     return hhi
 
 
-def top_funds_by_risk_appetite(scheme_performance: pd.DataFrame) -> pd.DataFrame:
-    appetite_map = {
-        "Low": ["Low"],
-        "Moderate": ["Moderate", "Moderately High"],
-        "High": ["High", "Very High"],
-    }
+def compute_recommendations(
+    scheme_performance: pd.DataFrame,
+    risk_appetite: str,
+) -> pd.DataFrame:
+    """Return top 3 recommendations for a mapped risk appetite."""
+    if risk_appetite not in RISK_APPETITE_MAP:
+        valid = ", ".join(RISK_APPETITE_MAP)
+        raise ValueError(f"Unsupported risk appetite '{risk_appetite}'. Choose one of: {valid}.")
 
-    tables: list[pd.DataFrame] = []
-    for appetite, grades in appetite_map.items():
-        subset = (
-            scheme_performance.loc[scheme_performance["risk_grade"].isin(grades)]
-            .sort_values(["sharpe_ratio", "aum_crore"], ascending=[False, False])
-            .head(3)
-            .copy()
-        )
-        subset.insert(0, "risk_appetite", appetite)
-        tables.append(
-            subset[
-                [
-                    "risk_appetite",
-                    "amfi_code",
-                    "scheme_name",
-                    "fund_house",
-                    "risk_grade",
-                    "sharpe_ratio",
-                    "return_3yr_pct",
-                    "aum_crore",
-                ]
-            ]
-        )
-
-    return pd.concat(tables, ignore_index=True)
-
-
-def table_block(dataframe: pd.DataFrame, rows: int = 10) -> str:
-    return "```text\n" + dataframe.head(rows).to_string(index=False) + "\n```"
-
-
-def format_currency(value: float) -> str:
-    return f"INR {value:,.0f}"
+    risk_grades = RISK_APPETITE_MAP[risk_appetite]
+    recommendations = (
+        scheme_performance.loc[scheme_performance["risk_grade"].isin(risk_grades)]
+        .sort_values(["sharpe_ratio", "aum_crore"], ascending=[False, False])
+        .head(3)
+        .copy()
+    )
+    return recommendations[
+        ["scheme_name", "risk_grade", "sharpe_ratio", "return_3yr_pct", "aum_crore"]
+    ].reset_index(drop=True)
 
 
 def build_insights(
     var_cvar: pd.DataFrame,
     cohorts: pd.DataFrame,
-    sip_summary: dict[str, float],
+    sip_continuity: pd.DataFrame,
     hhi: pd.DataFrame,
-    recommender_table: pd.DataFrame,
+    scheme_performance: pd.DataFrame,
 ) -> list[str]:
-    worst_var = var_cvar.iloc[0]
-    worst_cvar = var_cvar.sort_values("cvar_95").iloc[0]
-    top_cohort = cohorts.sort_values("total_invested_inr", ascending=False).iloc[0]
-    top_sip_cohort = cohorts.sort_values("avg_sip_amount_inr", ascending=False).iloc[0]
-    concentrated = hhi.iloc[0]
-    best_low = recommender_table.loc[recommender_table["risk_appetite"] == "Low"].iloc[0]
+    """Prepare five notebook-ready insight statements."""
+    highest_var = var_cvar.iloc[0]
+    top_cohort = cohorts.sort_values("total_invested", ascending=False).iloc[0]
+    sip_health_pct = (sip_continuity["status"] == "healthy").mean()
+    most_diversified = hhi.sort_values("HHI", ascending=True).iloc[0]
+    most_concentrated = hhi.iloc[0]
+    best_sharpe = scheme_performance.sort_values(
+        ["sharpe_ratio", "aum_crore"], ascending=[False, False]
+    ).iloc[0]
 
     return [
         (
-            f"Funds with the deepest left-tail risk were led by **{worst_var['scheme_name']}**, "
-            f"whose 95% one-day VaR reached **{worst_var['var_95_pct']:.2f}%**, while "
-            f"**{worst_cvar['scheme_name']}** had the weakest conditional tail outcome at "
-            f"**{worst_cvar['cvar_95_pct']:.2f}%**."
+            f"Highest tail risk sits with **{highest_var['scheme_name']}**, where the 95% historical "
+            f"VaR is **{highest_var['VaR_95']:.4f}** and the conditional loss measure CVaR is "
+            f"**{highest_var['CVaR_95']:.4f}**."
         ),
         (
-            f"The most valuable investor vintage was cohort **{int(top_cohort['cohort_year'])}**, "
-            f"with total invested volume of **{format_currency(top_cohort['total_invested_inr'])}** "
-            f"and a top fund preference for **{top_cohort['top_fund_preference']}**."
+            f"Cohort **{int(top_cohort['cohort_year'])}** invests the most overall, contributing "
+            f"**INR {top_cohort['total_invested']:,.0f}** with **{top_cohort['top_fund']}** as the top preference."
         ),
         (
-            f"Cohort **{int(top_sip_cohort['cohort_year'])}** posted the highest average SIP size at "
-            f"**{format_currency(top_sip_cohort['avg_sip_amount_inr'])}**, suggesting newer or more affluent "
-            f"investors are committing larger periodic tickets."
+            f"SIP continuity is healthy for **{sip_health_pct:.1%}** of investors who made at least "
+            f"{MIN_SIP_TRANSACTIONS} SIPs, leaving the remainder flagged as at risk."
         ),
         (
-            f"SIP continuity remained healthy for **{sip_summary['continuity_rate']:.1%}** of investors with "
-            f"at least {MIN_SIP_TRANSACTIONS} SIPs, leaving **{sip_summary['at_risk_investors']}** investors flagged "
-            f"as at-risk because their average gap exceeded {SIP_AT_RISK_DAYS} days."
+            f"The most diversified equity fund is **{most_diversified['scheme_name']}** with HHI "
+            f"**{most_diversified['HHI']:.3f}**, while **{most_concentrated['scheme_name']}** is the most "
+            f"concentrated at **{most_concentrated['HHI']:.3f}**."
         ),
         (
-            f"The most concentrated disclosed equity portfolio was **{concentrated['scheme_name']}** with an "
-            f"HHI of **{concentrated['hhi']:.3f}**, whereas the low-risk recommendation leader remained "
-            f"**{best_low['scheme_name']}** on Sharpe ratio within the mapped appetite bucket."
+            f"On risk-adjusted returns, **{best_sharpe['scheme_name']}** leads the universe with a "
+            f"Sharpe ratio of **{best_sharpe['sharpe_ratio']:.2f}**."
         ),
     ]
 
 
-def build_notebook(
-    var_cvar: pd.DataFrame,
-    key_funds: pd.DataFrame,
-    cohorts: pd.DataFrame,
-    sip_continuity: pd.DataFrame,
-    sip_summary: dict[str, float],
-    hhi: pd.DataFrame,
-    recommender_table: pd.DataFrame,
-) -> None:
+def df_preview_code(name: str, rows: int = 10) -> str:
+    return f"{name}.head({rows})"
+
+
+def build_notebook(insights: list[str]) -> None:
+    """Create a notebook with the required sections and executable cells."""
     notebook = nbformat.v4.new_notebook()
 
-    key_fund_names = key_funds["scheme_name"].drop_duplicates().tolist()
-    insights = build_insights(var_cvar, cohorts, sip_summary, hhi, recommender_table)
+    imports_code = textwrap.dedent(
+        """
+        from pathlib import Path
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pandas as pd
+        import seaborn as sns
+
+        sns.set_theme(style="whitegrid")
+
+        PROJECT_ROOT = Path.cwd()
+        PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+        TRADING_DAYS = 252
+        ROLLING_WINDOW = 90
+        KEY_FUND_COUNT = 5
+        MIN_SIP_TRANSACTIONS = 6
+        SIP_RISK_GAP_DAYS = 35
+
+        RISK_APPETITE_MAP = {
+            "Low": ["Low"],
+            "Moderate": ["Moderate", "Moderately High"],
+            "High": ["High", "Very High"],
+        }
+        """
+    ).strip()
+
+    loading_code = textwrap.dedent(
+        """
+        nav = pd.read_csv(PROCESSED_DIR / "nav_history.csv", parse_dates=["date"])
+        scheme_performance = pd.read_csv(PROCESSED_DIR / "scheme_performance.csv")
+        investor_transactions = pd.read_csv(
+            PROCESSED_DIR / "investor_transactions.csv",
+            parse_dates=["transaction_date"],
+        )
+        portfolio_holdings = pd.read_csv(
+            PROCESSED_DIR / "portfolio_holdings.csv",
+            parse_dates=["portfolio_date"],
+        )
+        fund_master = pd.read_csv(PROCESSED_DIR / "fund_master.csv", parse_dates=["launch_date"])
+
+        nav.head()
+        """
+    ).strip()
+
+    helpers_code = textwrap.dedent(
+        """
+        def compute_daily_returns(nav_df: pd.DataFrame) -> pd.DataFrame:
+            nav_df = nav_df.sort_values(["amfi_code", "date"]).copy()
+            nav_df["daily_return"] = nav_df.groupby("amfi_code")["nav"].pct_change()
+            return nav_df
+
+
+        def compute_var_cvar(nav_returns_df: pd.DataFrame, perf_df: pd.DataFrame) -> pd.DataFrame:
+            risk_df = (
+                nav_returns_df.dropna(subset=["daily_return"])
+                .groupby("amfi_code")["daily_return"]
+                .agg(
+                    VaR_95=lambda s: s.quantile(0.05),
+                    CVaR_95=lambda s: s[s <= s.quantile(0.05)].mean(),
+                )
+                .reset_index()
+            )
+            return (
+                perf_df[["amfi_code", "scheme_name"]]
+                .drop_duplicates()
+                .merge(risk_df, on="amfi_code", how="left")
+                .sort_values(["VaR_95", "CVaR_95", "scheme_name"], ascending=[True, True, True])
+                .reset_index(drop=True)
+            )
+
+
+        def compute_rolling_sharpe(nav_returns_df: pd.DataFrame) -> pd.DataFrame:
+            nav_returns_df = nav_returns_df.sort_values(["amfi_code", "date"]).copy()
+            grouped = nav_returns_df.groupby("amfi_code")["daily_return"]
+            rolling_mean = grouped.transform(lambda s: s.rolling(ROLLING_WINDOW).mean())
+            rolling_std = grouped.transform(lambda s: s.rolling(ROLLING_WINDOW).std())
+            nav_returns_df["rolling_sharpe"] = (rolling_mean / rolling_std) * np.sqrt(TRADING_DAYS)
+            return nav_returns_df
+
+
+        def select_key_funds(rolling_df: pd.DataFrame, perf_df: pd.DataFrame) -> pd.DataFrame:
+            key_codes = (
+                perf_df.sort_values(["aum_crore", "sharpe_ratio"], ascending=[False, False])
+                .head(KEY_FUND_COUNT)["amfi_code"]
+                .tolist()
+            )
+            meta = perf_df[["amfi_code", "scheme_name"]].drop_duplicates()
+            return (
+                rolling_df.loc[rolling_df["amfi_code"].isin(key_codes)]
+                .merge(meta, on="amfi_code", how="left")
+                .sort_values(["scheme_name", "date"])
+                .reset_index(drop=True)
+            )
+
+
+        def compute_cohort_analysis(transactions_df: pd.DataFrame, perf_df: pd.DataFrame) -> pd.DataFrame:
+            first_year = (
+                transactions_df.groupby("investor_id")["transaction_date"]
+                .min()
+                .dt.year.rename("cohort_year")
+            )
+            cohort_df = transactions_df.merge(first_year, on="investor_id", how="left")
+            invested_mask = cohort_df["transaction_type"].isin(["SIP", "Lumpsum"])
+
+            avg_sip_amount = (
+                cohort_df.loc[cohort_df["transaction_type"] == "SIP"]
+                .groupby("cohort_year")["amount_inr"]
+                .mean()
+                .rename("avg_sip_amount")
+            )
+            total_invested = (
+                cohort_df.loc[invested_mask]
+                .groupby("cohort_year")["amount_inr"]
+                .sum()
+                .rename("total_invested")
+            )
+            investor_count = (
+                first_year.value_counts().rename_axis("cohort_year").rename("investor_count")
+            )
+            top_fund = (
+                cohort_df.loc[invested_mask]
+                .groupby(["cohort_year", "amfi_code"])["amount_inr"]
+                .sum()
+                .reset_index()
+                .sort_values(["cohort_year", "amount_inr", "amfi_code"], ascending=[True, False, True])
+                .drop_duplicates("cohort_year")
+                .merge(perf_df[["amfi_code", "scheme_name"]], on="amfi_code", how="left")
+                .set_index("cohort_year")["scheme_name"]
+                .rename("top_fund")
+            )
+            return (
+                pd.concat([avg_sip_amount, total_invested, investor_count, top_fund], axis=1)
+                .reset_index()
+                .sort_values("cohort_year")
+                .reset_index(drop=True)
+            )
+
+
+        def compute_sip_continuity(transactions_df: pd.DataFrame) -> pd.DataFrame:
+            sip_df = transactions_df.loc[transactions_df["transaction_type"] == "SIP"].copy()
+            sip_df = sip_df.sort_values(["investor_id", "transaction_date"])
+            sip_df["gap_days"] = sip_df.groupby("investor_id")["transaction_date"].diff().dt.days
+            eligible = sip_df.groupby("investor_id").filter(lambda frame: len(frame) >= MIN_SIP_TRANSACTIONS)
+            status_df = (
+                eligible.groupby("investor_id")["gap_days"]
+                .mean()
+                .reset_index(name="avg_gap_days")
+                .sort_values(["avg_gap_days", "investor_id"], ascending=[False, True])
+                .reset_index(drop=True)
+            )
+            status_df["status"] = np.where(status_df["avg_gap_days"] > SIP_RISK_GAP_DAYS, "at_risk", "healthy")
+            return status_df
+
+
+        def recommend_funds(risk_appetite: str, perf_df: pd.DataFrame) -> pd.DataFrame:
+            risk_grades = RISK_APPETITE_MAP[risk_appetite]
+            ranked = (
+                perf_df.loc[perf_df["risk_grade"].isin(risk_grades)]
+                .sort_values(["sharpe_ratio", "aum_crore"], ascending=[False, False])
+                .head(3)
+                .copy()
+            )
+            return ranked[["scheme_name", "risk_grade", "sharpe_ratio", "return_3yr_pct", "aum_crore"]]
+
+
+        def compute_hhi(holdings_df: pd.DataFrame, master_df: pd.DataFrame) -> pd.DataFrame:
+            equity_funds = master_df.loc[
+                master_df["category"].str.contains("equity", case=False, na=False),
+                ["amfi_code", "scheme_name"],
+            ].drop_duplicates()
+            return (
+                holdings_df.merge(equity_funds, on="amfi_code", how="inner")
+                .assign(weight_decimal=lambda df: df["weight_pct"] / 100)
+                .groupby("scheme_name")["weight_decimal"]
+                .apply(lambda s: np.square(s).sum())
+                .reset_index(name="HHI")
+                .sort_values(["HHI", "scheme_name"], ascending=[False, True])
+                .reset_index(drop=True)
+            )
+        """
+    ).strip()
+
+    analysis_setup_code = textwrap.dedent(
+        """
+        nav_returns = compute_daily_returns(nav)
+        var_cvar = compute_var_cvar(nav_returns, scheme_performance)
+        rolling_sharpe = compute_rolling_sharpe(nav_returns)
+        key_funds = select_key_funds(rolling_sharpe, scheme_performance)
+        cohort_summary = compute_cohort_analysis(investor_transactions, scheme_performance)
+        sip_continuity = compute_sip_continuity(investor_transactions)
+        hhi_summary = compute_hhi(portfolio_holdings, fund_master)
+        moderate_recommendations = recommend_funds("Moderate", scheme_performance)
+        """
+    ).strip()
+
+    sharpe_plot_code = textwrap.dedent(
+        """
+        plt.figure(figsize=(14, 8))
+        for scheme_name, fund_data in key_funds.groupby("scheme_name", sort=False):
+            plt.plot(fund_data["date"], fund_data["rolling_sharpe"], linewidth=2, label=scheme_name)
+
+        plt.axhline(0, color="#666666", linestyle="--", linewidth=1)
+        plt.title("Rolling 90-Day Sharpe Ratio")
+        plt.xlabel("Date")
+        plt.ylabel("Sharpe Ratio")
+        plt.legend(loc="best")
+        plt.tight_layout()
+        plt.show()
+        """
+    ).strip()
 
     notebook.cells = [
+        nbformat.v4.new_markdown_cell("# Imports\nLoad the libraries used throughout the advanced analytics workflow."),
+        nbformat.v4.new_code_cell(imports_code),
+        nbformat.v4.new_markdown_cell("# Data Loading\nRead the processed mutual fund datasets and inspect the core NAV table."),
+        nbformat.v4.new_code_cell(loading_code),
         nbformat.v4.new_markdown_cell(
-            "# Advanced Analytics\n"
-            "This notebook consolidates tail-risk, rolling risk-adjusted return, investor behavior, "
-            "SIP continuity, portfolio concentration, and recommendation outputs for the 40 mutual fund schemes."
+            "# Helper Functions\nModular helper functions keep the analysis reusable, testable, and easier to maintain."
         ),
+        nbformat.v4.new_code_cell(helpers_code),
+        nbformat.v4.new_code_cell(analysis_setup_code),
         nbformat.v4.new_markdown_cell(
-            "## Methodology\n"
-            "- Historical VaR (95%) uses the 5th percentile of daily returns by fund.\n"
-            "- CVaR (95%) uses the mean of daily returns that fall at or below the VaR threshold.\n"
-            "- Rolling Sharpe ratio uses `returns.rolling(90).mean() / returns.rolling(90).std() * sqrt(252)`.\n"
-            f"- The 5 key funds in the chart are the top {KEY_FUND_COUNT} schemes by AUM, with Sharpe ratio as a tiebreaker.\n"
-            f"- SIP continuity flags investors as at-risk when average SIP gaps exceed {SIP_AT_RISK_DAYS} days after at least {MIN_SIP_TRANSACTIONS} SIP transactions.\n"
-            "- HHI is calculated as the sum of squared portfolio weights in decimal form for disclosed equity holdings."
+            "# VaR and CVaR Analysis\nHistorical VaR uses the 5th percentile of daily returns, while CVaR measures the average loss beyond that threshold."
         ),
+        nbformat.v4.new_code_cell(df_preview_code("var_cvar", 10)),
         nbformat.v4.new_markdown_cell(
-            "## Advanced Insights\n"
-            + "\n".join(f"{idx}. {text}" for idx, text in enumerate(insights, start=1))
+            "# Rolling Sharpe Analysis\nThe 90-day rolling Sharpe ratio shows how risk-adjusted returns evolve over time for five key funds."
         ),
+        nbformat.v4.new_code_cell(sharpe_plot_code),
         nbformat.v4.new_markdown_cell(
-            "## VaR and CVaR Leaders\n"
-            + table_block(
-                var_cvar.assign(
-                    var_95_pct=lambda df: df["var_95_pct"].round(2),
-                    cvar_95_pct=lambda df: df["cvar_95_pct"].round(2),
-                    sharpe_ratio=lambda df: df["sharpe_ratio"].round(2),
-                )[
-                    [
-                        "scheme_name",
-                        "risk_grade",
-                        "sharpe_ratio",
-                        "var_95_pct",
-                        "cvar_95_pct",
-                        "return_observations",
-                    ]
-                ],
-                rows=12,
-            )
+            "# Cohort Analysis\nInvestors are grouped by their first transaction year to compare periodic commitment and cumulative invested amounts."
         ),
+        nbformat.v4.new_code_cell(df_preview_code("cohort_summary", 10)),
         nbformat.v4.new_markdown_cell(
-            "## Rolling 90-Day Sharpe Coverage\n"
-            f"Tracked key funds: **{', '.join(key_fund_names)}**.\n\n"
-            "The time-series plot is exported to `rolling_sharpe_chart.png` for direct use in the report deck or dashboard."
+            "# SIP Continuity Analysis\nInvestors with at least six SIP transactions are flagged based on their average gap between installments."
         ),
+        nbformat.v4.new_code_cell(df_preview_code("sip_continuity", 10)),
         nbformat.v4.new_markdown_cell(
-            "## Investor Cohort Summary\n"
-            + table_block(
-                cohorts.assign(
-                    avg_sip_amount_inr=lambda df: df["avg_sip_amount_inr"].round(0),
-                    total_invested_inr=lambda df: df["total_invested_inr"].round(0),
-                    top_fund_invested_inr=lambda df: df["top_fund_invested_inr"].round(0),
-                )[
-                    [
-                        "cohort_year",
-                        "investor_count",
-                        "avg_sip_amount_inr",
-                        "total_invested_inr",
-                        "top_fund_preference",
-                        "top_fund_invested_inr",
-                    ]
-                ],
-                rows=10,
-            )
+            "# Recommender System\nFunds are mapped to risk appetite buckets and ranked by Sharpe ratio in descending order."
         ),
+        nbformat.v4.new_code_cell('recommend_funds("Moderate", scheme_performance)'),
         nbformat.v4.new_markdown_cell(
-            "## SIP Continuity Summary\n"
-            f"- Eligible investors: **{sip_summary['eligible_investors']}**\n"
-            f"- At-risk investors: **{sip_summary['at_risk_investors']}**\n"
-            f"- Continuity rate: **{sip_summary['continuity_rate']:.1%}**\n"
-            f"- Average gap across eligible investors: **{sip_summary['avg_gap_days_overall']:.1f} days**\n\n"
-            + table_block(
-                sip_continuity.assign(
-                    avg_gap_days=lambda df: df["avg_gap_days"].round(1),
-                    median_gap_days=lambda df: df["median_gap_days"].round(1),
-                )[
-                    [
-                        "investor_id",
-                        "sip_transactions",
-                        "avg_gap_days",
-                        "median_gap_days",
-                        "continuity_status",
-                        "latest_sip_date",
-                    ]
-                ],
-                rows=12,
-            )
+            "# HHI Concentration\nPortfolio concentration is measured with the Herfindahl-Hirschman Index using disclosed holding weights."
         ),
+        nbformat.v4.new_code_cell(df_preview_code("hhi_summary", 10)),
         nbformat.v4.new_markdown_cell(
-            "## Equity Portfolio Concentration (HHI)\n"
-            + table_block(
-                hhi.assign(
-                    hhi=lambda df: df["hhi"].round(3),
-                    top_holding_weight_pct=lambda df: df["top_holding_weight_pct"].round(2),
-                )[
-                    [
-                        "scheme_name",
-                        "risk_grade",
-                        "hhi",
-                        "concentration_label",
-                        "holdings_count",
-                        "top_sector",
-                        "top_holding_weight_pct",
-                    ]
-                ],
-                rows=12,
-            )
-        ),
-        nbformat.v4.new_markdown_cell(
-            "## Recommendation Snapshot\n"
-            + table_block(
-                recommender_table.assign(
-                    sharpe_ratio=lambda df: df["sharpe_ratio"].round(2),
-                    return_3yr_pct=lambda df: df["return_3yr_pct"].round(2),
-                ),
-                rows=9,
-            )
+            "# Advanced Insights\n" + "\n".join(f"{idx}. {insight}" for idx, insight in enumerate(insights, start=1))
         ),
     ]
 
     nbformat.write(notebook, NOTEBOOK_PATH)
 
 
+def build_recommender_module() -> None:
+    """Write the standalone recommender module requested in the deliverables."""
+    recommender_code = textwrap.dedent(
+        '''
+        """Mutual fund recommender ranked by Sharpe ratio within a risk appetite bucket."""
+
+        from __future__ import annotations
+
+        from pathlib import Path
+
+        import pandas as pd
+
+
+        PROJECT_ROOT = Path(__file__).resolve().parent
+        SCHEME_PERFORMANCE_PATH = PROJECT_ROOT / "data" / "processed" / "scheme_performance.csv"
+
+        RISK_APPETITE_MAP = {
+            "Low": ["Low"],
+            "Moderate": ["Moderate", "Moderately High"],
+            "High": ["High", "Very High"],
+        }
+
+
+        def recommend_funds(risk_appetite: str) -> pd.DataFrame:
+            """Return the top 3 funds for a given risk appetite."""
+            normalized = risk_appetite.strip().title()
+            if normalized not in RISK_APPETITE_MAP:
+                valid = ", ".join(RISK_APPETITE_MAP)
+                raise ValueError(f"Unsupported risk appetite '{risk_appetite}'. Choose one of: {valid}.")
+
+            scheme_performance = pd.read_csv(SCHEME_PERFORMANCE_PATH)
+            recommendations = (
+                scheme_performance.loc[
+                    scheme_performance["risk_grade"].isin(RISK_APPETITE_MAP[normalized])
+                ]
+                .sort_values(["sharpe_ratio", "aum_crore"], ascending=[False, False])
+                .head(3)
+                .copy()
+            )
+            return recommendations[
+                ["scheme_name", "risk_grade", "sharpe_ratio", "return_3yr_pct", "aum_crore"]
+            ].reset_index(drop=True)
+        '''
+    ).strip() + "\n"
+    RECOMMENDER_PATH.write_text(recommender_code, encoding="utf-8")
+
+
 def main() -> int:
-    nav, scheme_performance, fund_master, transactions, holdings = load_inputs()
+    nav, scheme_performance, transactions, holdings, fund_master = load_inputs()
+
     nav_returns = compute_daily_returns(nav)
     var_cvar = compute_var_cvar(nav_returns, scheme_performance)
     rolling_sharpe = compute_rolling_sharpe(nav_returns)
     key_funds = select_key_funds(rolling_sharpe, scheme_performance)
-    cohorts = compute_investor_cohorts(transactions, scheme_performance)
-    sip_continuity, sip_summary = compute_sip_continuity(transactions)
-    hhi = compute_hhi(holdings, scheme_performance, fund_master)
-    recommender_table = top_funds_by_risk_appetite(scheme_performance)
+    cohorts = compute_cohort_analysis(transactions, scheme_performance)
+    sip_continuity = compute_sip_continuity(transactions)
+    hhi = compute_hhi(holdings, fund_master)
+    insights = build_insights(var_cvar, cohorts, sip_continuity, hhi, scheme_performance)
 
     var_cvar.to_csv(VAR_CVAR_PATH, index=False)
-    render_rolling_sharpe_chart(key_funds)
-    build_notebook(
-        var_cvar=var_cvar,
-        key_funds=key_funds,
-        cohorts=cohorts,
-        sip_continuity=sip_continuity,
-        sip_summary=sip_summary,
-        hhi=hhi,
-        recommender_table=recommender_table,
-    )
+    save_rolling_sharpe_chart(key_funds)
+    build_recommender_module()
+    build_notebook(insights)
 
     print(f"Wrote {VAR_CVAR_PATH.name}")
     print(f"Wrote {ROLLING_SHARPE_CHART_PATH.name}")
+    print(f"Wrote {RECOMMENDER_PATH.name}")
     print(f"Wrote {NOTEBOOK_PATH.name}")
     return 0
 
