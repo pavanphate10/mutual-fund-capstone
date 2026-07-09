@@ -17,10 +17,11 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
-NOTEBOOK_PATH = PROJECT_ROOT / "Advanced_Analytics.ipynb"
-VAR_CVAR_PATH = PROJECT_ROOT / "var_cvar_report.csv"
-ROLLING_SHARPE_CHART_PATH = PROJECT_ROOT / "rolling_sharpe_chart.png"
-RECOMMENDER_PATH = PROJECT_ROOT / "recommender.py"
+REPORTS_DIR = PROJECT_ROOT / "reports"
+NOTEBOOK_PATH = PROJECT_ROOT / "notebooks" / "05_advanced_analytics.ipynb"
+VAR_CVAR_PATH = REPORTS_DIR / "var_cvar_report.csv"
+ROLLING_SHARPE_CHART_PATH = REPORTS_DIR / "rolling_sharpe_chart.png"
+RECOMMENDER_PATH = PROJECT_ROOT / "scripts" / "recommender.py"
 
 TRADING_DAYS = 252
 ROLLING_WINDOW = 90

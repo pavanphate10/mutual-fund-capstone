@@ -24,7 +24,7 @@ Optional table:
 
 If you prefer a database connection, use SQLite and point Power BI to:
 
-- `d:\Mutual_fund\mutual_fund_project\bluestock_mf.db`
+- `d:\Mutual_fund\bluestock_mf_capstone\data\db\bluestock_mf.db`
 
 ## Relationships
 
@@ -116,15 +116,15 @@ Visuals:
    Y = `scheme_performance[std_dev_ann_pct]`
    Size = `scheme_performance[aum_crore]`
    Details = `scheme_performance[scheme_name]`
-2. Sortable table using `fund_scorecard.csv`
+2. Sortable table using `reports/fund_scorecard.csv`
 3. Line chart: `nav_history[date]` vs `nav_history[nav]`
 4. Overlay benchmark line from `benchmark_indices[close_value]`
 5. Slicers: `fund_house`, `category`, `plan`
 
 Recommended:
 
-1. Import `fund_scorecard.csv` from the project root as an additional table
-2. Import `alpha_beta.csv` if you want regression metrics visible in detail views
+1. Import `reports/fund_scorecard.csv` as an additional table
+2. Import `reports/alpha_beta.csv` if you want regression metrics visible in detail views
 
 ### Page 3: Investor Analytics
 
@@ -185,16 +185,16 @@ Add report page tooltips or standard tooltips to all visuals. Best tooltip field
 
 After the report is built in Power BI Desktop:
 
-1. Save as `bluestock_mf_dashboard.pbix`
-2. Export to PDF as `Dashboard.pdf`
+1. Save as `dashboard/bluestock_mf.pbix`
+2. Export to PDF as `reports/Dashboard.pdf`
 3. Export each page as PNG using Power BI Desktop screenshot workflow or Power BI Service export
 
 ## Limits From This Environment
 
 I could not produce these final binary/UI deliverables here:
 
-1. `bluestock_mf_dashboard.pbix`
-2. `Dashboard.pdf`
+1. `dashboard/bluestock_mf.pbix`
+2. `reports/Dashboard.pdf`
 3. Real page screenshots exported from Power BI
 
 Those require interactive Power BI Desktop operations.

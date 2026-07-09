@@ -14,10 +14,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 REPORTS_DIR = PROJECT_ROOT / "reports"
+DOCS_DIR = PROJECT_ROOT / "docs"
 DB_PATH = PROJECT_ROOT / "data" / "db" / "bluestock_mf.db"
 SCHEMA_PATH = PROJECT_ROOT / "sql" / "schema.sql"
 QUERIES_PATH = PROJECT_ROOT / "sql" / "queries.sql"
-DATA_DICTIONARY_PATH = PROJECT_ROOT / "data_dictionary.md"
+DATA_DICTIONARY_PATH = DOCS_DIR / "methodology.md"
 LOAD_REPORT_PATH = REPORTS_DIR / "day2_load_verification.md"
 LOG_FILE = REPORTS_DIR / "day2_pipeline.log"
 

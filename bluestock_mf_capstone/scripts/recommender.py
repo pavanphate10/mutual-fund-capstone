@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SCHEME_PERFORMANCE_PATH = PROJECT_ROOT / "data" / "processed" / "scheme_performance.csv"
 
 RISK_APPETITE_MAP = {

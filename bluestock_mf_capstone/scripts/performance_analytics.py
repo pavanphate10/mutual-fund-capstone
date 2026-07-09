@@ -19,10 +19,11 @@ from scipy.stats import linregress
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+REPORTS_DIR = PROJECT_ROOT / "reports"
 NOTEBOOK_PATH = PROJECT_ROOT / "notebooks" / "04_performance_analytics.ipynb"
-SCORECARD_PATH = PROJECT_ROOT / "fund_scorecard.csv"
-ALPHA_BETA_PATH = PROJECT_ROOT / "alpha_beta.csv"
-CHART_PATH = PROJECT_ROOT / "benchmark_comparison_chart.png"
+SCORECARD_PATH = REPORTS_DIR / "fund_scorecard.csv"
+ALPHA_BETA_PATH = REPORTS_DIR / "alpha_beta.csv"
+CHART_PATH = REPORTS_DIR / "benchmark_comparison_chart.png"
 
 RISK_FREE_RATE = 0.065
 TRADING_DAYS = 252

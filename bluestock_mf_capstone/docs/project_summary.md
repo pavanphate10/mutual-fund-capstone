@@ -29,7 +29,7 @@ The project is organized into the following major folders:
 - `notebooks/` for notebook-based analysis
 - `reports/` for logs, validation notes, and summary reports
 - `sql/` for schema creation and query files
-- `dashboard/` and `powerbi_assets/` for BI deliverables
+- `dashboard/` for BI deliverables
 
 ## Available Datasets
 
@@ -103,9 +103,9 @@ Key scripts in the project include:
 
 The project includes performance analytics outputs such as:
 
-- `fund_scorecard.csv`
-- `alpha_beta.csv`
-- `benchmark_comparison_chart.png`
+- `reports/fund_scorecard.csv`
+- `reports/alpha_beta.csv`
+- `reports/benchmark_comparison_chart.png`
 - `notebooks/04_performance_analytics.ipynb`
 
 These support return analysis, benchmark comparison, and risk-adjusted performance interpretation.
@@ -114,10 +114,10 @@ These support return analysis, benchmark comparison, and risk-adjusted performan
 
 The advanced analytics module produces:
 
-- `Advanced_Analytics.ipynb`
-- `var_cvar_report.csv`
-- `rolling_sharpe_chart.png`
-- `recommender.py`
+- `notebooks/05_advanced_analytics.ipynb`
+- `reports/var_cvar_report.csv`
+- `reports/rolling_sharpe_chart.png`
+- `scripts/recommender.py`
 
 ### Advanced Analytics Coverage
 
@@ -154,10 +154,9 @@ The project also includes:
 
 - `sql/schema.sql`
 - `sql/queries.sql`
-- `dashboard/bluestock_mf_dashboard.pbix`
-- `powerbi_assets/measures_dax.txt`
-- `powerbi_assets/bluestock_theme.json`
-- `powerbi_assets/powerbi_build_guide.md`
+- `dashboard/bluestock_mf.pbix`
+- `dashboard/dashboard_assets/measures_dax.txt`
+- `dashboard/bluestock_theme.json`
 
 These assets extend the project from pure Python analysis into queryable data models and dashboard reporting.
 
